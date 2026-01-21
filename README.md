@@ -193,13 +193,3 @@ After deployment, your app will be available at:
 ```
 https://your-site-name.netlify.app
 ```
-
-### Netlify Free Tier
-
-- ✅ **100GB bandwidth/month**
-- ✅ **300 build minutes/month**
-- ✅ **Unlimited sites**
-- ✅ **HTTPS by default**
-- ✅ **Custom domains**
-- ✅ **No credit card required**
-- ✅ **Instant deployments**
