@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Block Buster</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #000;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            margin: 10px 0;
+        }
+        #gameCanvas {
+            border: 2px solid white;
+            background-color: #000;
+        }
+        #score {
+            font-size: 24px;
+            margin: 10px 0;
+        }
+        #instructions {
+            margin: 10px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple Block Buster</h1>
+    <div id="score">Score: 0</div>
+    <div id="instructions">Use LEFT and RIGHT arrow keys to move the paddle</div>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <script>
+        // Game constants
+        const PADDLE_WIDTH = 100;
+        const PADDLE_HEIGHT = 20;
+        const BALL_SIZE = 15;
+        const BLOCK_WIDTH = 80;
+        const BLOCK_HEIGHT = 30;
+        const BLOCK_ROWS = 5;
+        const BLOCK_COLS = 10;
+
+        // Get canvas and context
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game objects
+        let paddle = {
+            x: canvas.width / 2 - PADDLE_WIDTH / 2,
+            y: canvas.height - 50,
+            width: PADDLE_WIDTH,
+            height: PADDLE_HEIGHT,
+            speed: 5
+        };
+
+        let ball = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            size: BALL_SIZE,
+            speedX: 3,
+            speedY: -3
+        };
+
+        // Create blocks
+        let blocks = [];
+        const colors = ['#ff0000', '#ffa500', '#ffff00', '#00ff00', '#0064ff'];
+        
+        for (let row = 0; row < BLOCK_ROWS; row++) {
+            for (let col = 0; col < BLOCK_COLS; col++) {
+                blocks.push({
+                    x: col * (BLOCK_WIDTH + 5) + 50,
+                    y: row * (BLOCK_HEIGHT + 5) + 50,
+                    width: BLOCK_WIDTH,
+                    height: BLOCK_HEIGHT,
+                    color: colors[row % colors.length],
+                    destroyed: false
+                });
+            }
+        }
+
+        // Game state
+        let score = 0;
+        let gameOver = false;
+        let keys = {};
+
+        // Keyboard input
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // Move paddle
+        function movePaddle() {
+            if (keys['ArrowLeft'] && paddle.x > 0) {
+                paddle.x -= paddle.speed;
+            }
+            if (keys['ArrowRight'] && paddle.x < canvas.width - paddle.width) {
+                paddle.x += paddle.speed;
+            }
+        }
+
+        // Move ball
+        function moveBall() {
+            ball.x += ball.speedX;
+            ball.y += ball.speedY;
+
+            // Bounce off walls
+            if (ball.x <= 0 || ball.x >= canvas.width - ball.size) {
+                ball.speedX = -ball.speedX;
+            }
+            if (ball.y <= 0) {
+                ball.speedY = -ball.speedY;
+            }
+        }
+
+        // Check collisions
+        function checkCollisions() {
+            // Ball and paddle
+            if (ball.x < paddle.x + paddle.width &&
+                ball.x + ball.size > paddle.x &&
+                ball.y < paddle.y + paddle.height &&
+                ball.y + ball.size > paddle.y) {
+                ball.speedY = -Math.abs(ball.speedY);
+                ball.speedX = (ball.x - paddle.x - paddle.width / 2) / 10;
+            }
+
+            // Ball and blocks
+            for (let block of blocks) {
+                if (!block.destroyed &&
+                    ball.x < block.x + block.width &&
+                    ball.x + ball.size > block.x &&
+                    ball.y < block.y + block.height &&
+                    ball.y + ball.size > block.y) {
+                    block.destroyed = true;
+                    ball.speedY = -ball.speedY;
+                    score += 10;
+                    document.getElementById('score').textContent = 'Score: ' + score;
+                }
+            }
+
+            // Check game over
+            if (ball.y > canvas.height) {
+                gameOver = true;
+            }
+
+            // Check win
+            if (blocks.every(b => b.destroyed)) {
+                gameOver = true;
+            }
+        }
+
+        // Draw everything
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw blocks
+            for (let block of blocks) {
+                if (!block.destroyed) {
+                    ctx.fillStyle = block.color;
+                    ctx.fillRect(block.x, block.y, block.width, block.height);
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.strokeRect(block.x, block.y, block.width, block.height);
+                }
+            }
+
+            // Draw paddle
+            ctx.fillStyle = '#0064ff';
+            ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+
+            // Draw ball
+            ctx.fillStyle = '#ff0000';
+            ctx.beginPath();
+            ctx.arc(ball.x + ball.size/2, ball.y + ball.size/2, ball.size/2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw game over message
+            if (gameOver) {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '36px Arial';
+                ctx.textAlign = 'center';
+                if (blocks.every(b => b.destroyed)) {
+                    ctx.fillText('YOU WIN!', canvas.width / 2, canvas.height / 2);
+                } else {
+                    ctx.fillText('GAME OVER!', canvas.width / 2, canvas.height / 2);
+                }
+            }
+        }
+
+        // Game loop
+        function gameLoop() {
+            if (!gameOver) {
+                movePaddle();
+                moveBall();
+                checkCollisions();
+            }
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Start game
+        gameLoop();
+    </script>
+</body>
+</html>
