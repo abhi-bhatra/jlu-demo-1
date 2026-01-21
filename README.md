@@ -123,4 +123,83 @@ The Dockerfile is very simple and perfect for learning:
 - `COPY templates/ templates/` - Copies HTML template
 - `EXPOSE 8080` - Documents which port the app uses
 - `CMD ["python", "app.py"]` - Runs the Flask server
-# jlu-demo-1
+
+## GitHub Actions CI/CD
+
+This project includes a GitHub Actions workflow that automatically builds and deploys to Netlify when code is pushed to the `master` branch.
+
+### Setup GitHub Actions for Netlify
+
+1. **Create a Netlify Account**:
+   - Sign up at https://app.netlify.com (free account, no credit card needed)
+   - You can sign up with GitHub, which makes setup easier
+
+2. **Create a New Site on Netlify**:
+   - Go to https://app.netlify.com
+   - Click "Add new site" → "Import an existing project"
+   - Connect your GitHub repository
+   - Netlify will detect the `netlify.toml` configuration
+
+3. **Get your Netlify Tokens**:
+   - Go to https://app.netlify.com/user/applications
+   - Click "New access token"
+   - Give it a name (e.g., "GitHub Actions")
+   - Copy the token (you'll only see it once!)
+
+4. **Get your Site ID**:
+   - Go to your site on Netlify dashboard
+   - Click "Site settings" → "General"
+   - Copy the "Site ID" (or find it in the URL: `app.netlify.com/sites/YOUR-SITE-ID`)
+
+5. **Add GitHub Secrets**:
+   - Go to your GitHub repository
+   - Click **Settings** → **Secrets and variables** → **Actions**
+   - Click **New repository secret**
+   - Add two secrets:
+     - `NETLIFY_AUTH_TOKEN`: Your Netlify access token
+     - `NETLIFY_SITE_ID`: Your Netlify site ID
+
+6. **Push to master branch**:
+   ```bash
+   git push origin master
+   ```
+
+The workflow will automatically:
+- Deploy the static site from the `public` folder
+- Your app will be live at `https://your-site-name.netlify.app`
+
+### Workflow File
+
+The workflow is located at `.github/workflows/deploy.yml` and is very simple:
+- Triggers on push to `master` branch
+- Deploys the `public` folder to Netlify
+- No build step needed (static HTML/JS)
+
+### View Workflow Runs
+
+- Go to your GitHub repository
+- Click **Actions** tab
+- You'll see the workflow runs and their status
+
+### Netlify Configuration
+
+The `netlify.toml` file contains your site configuration:
+- `publish`: Directory to deploy (`public`)
+- `redirects`: SPA routing configuration
+
+### Access Your App
+
+After deployment, your app will be available at:
+```
+https://your-site-name.netlify.app
+```
+
+### Netlify Free Tier
+
+- ✅ **100GB bandwidth/month**
+- ✅ **300 build minutes/month**
+- ✅ **Unlimited sites**
+- ✅ **HTTPS by default**
+- ✅ **Custom domains**
+- ✅ **No credit card required**
+- ✅ **Instant deployments**
